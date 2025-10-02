@@ -74,6 +74,17 @@ async def async_setup_entry(
         UnraidUptimeSensor(coordinator, entry),
     ])
 
+    # Motherboard temperature sensor (if available)
+    system_data = coordinator.data.get(KEY_SYSTEM, {})
+    if system_data.get("motherboard_temp_celsius"):
+        entities.append(UnraidMotherboardTemperatureSensor(coordinator, entry))
+
+    # Fan sensors (dynamic, one per fan)
+    fans = system_data.get("fans", [])
+    for fan in fans:
+        fan_name = fan.get("name", "unknown")
+        entities.append(UnraidFanSensor(coordinator, entry, fan_name))
+
     # Array sensors
     entities.extend([
         UnraidArrayUsageSensor(coordinator, entry),
@@ -216,6 +227,61 @@ class UnraidCPUTemperatureSensor(UnraidSensorBase):
     def native_value(self) -> float | None:
         """Return the state."""
         return self.coordinator.data.get(KEY_SYSTEM, {}).get("cpu_temp_celsius")
+
+
+class UnraidMotherboardTemperatureSensor(UnraidSensorBase):
+    """Motherboard temperature sensor."""
+
+    _attr_name = "Motherboard Temperature"
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = ICON_TEMPERATURE
+
+    @property
+    def unique_id(self) -> str:
+        """Return unique ID."""
+        return f"{self._entry.entry_id}_motherboard_temperature"
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the state."""
+        return self.coordinator.data.get(KEY_SYSTEM, {}).get("motherboard_temp_celsius")
+
+
+class UnraidFanSensor(UnraidSensorBase):
+    """Fan speed sensor."""
+
+    _attr_native_unit_of_measurement = "RPM"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:fan"
+
+    def __init__(
+        self,
+        coordinator: UnraidDataUpdateCoordinator,
+        entry: ConfigEntry,
+        fan_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, entry)
+        self._fan_name = fan_name
+        self._attr_name = f"Fan {fan_name}"
+
+    @property
+    def unique_id(self) -> str:
+        """Return unique ID."""
+        # Sanitize fan name for unique ID
+        safe_name = self._fan_name.replace(" ", "_").replace("/", "_").lower()
+        return f"{self._entry.entry_id}_fan_{safe_name}"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the state."""
+        fans = self.coordinator.data.get(KEY_SYSTEM, {}).get("fans", [])
+        for fan in fans:
+            if fan.get("name") == self._fan_name:
+                return fan.get("rpm")
+        return None
 
 
 class UnraidUptimeSensor(UnraidSensorBase):
