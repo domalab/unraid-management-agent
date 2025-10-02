@@ -25,28 +25,23 @@ Home Assistant custom integration for monitoring and controlling Unraid servers 
 
 ## Installation
 
-### HACS (Recommended)
+For detailed installation instructions, see [INSTALLATION.md](../../INSTALLATION.md).
 
-1. Open HACS in Home Assistant
-2. Click on "Integrations"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/ruaandeysel/unraid-management-agent`
-6. Select category: "Integration"
-7. Click "Add"
-8. Find "Unraid Management Agent" in the integration list
-9. Click "Download"
-10. Restart Home Assistant
+### Quick Start
 
-### Manual Installation
+1. **HACS Installation** (Recommended)
+   - Add custom repository: `https://github.com/ruaandeysel/unraid-management-agent`
+   - Install "Unraid Management Agent"
+   - Restart Home Assistant
 
-1. Download the latest release from GitHub
-2. Extract the `unraid_management_agent` folder
-3. Copy it to your `custom_components` directory:
-   ```
-   <config_dir>/custom_components/unraid_management_agent/
-   ```
-4. Restart Home Assistant
+2. **Manual Installation**
+   - Copy `unraid_management_agent` folder to `<config>/custom_components/`
+   - Restart Home Assistant
+
+3. **Configure**
+   - Go to Settings → Devices & Services
+   - Add "Unraid Management Agent"
+   - Enter your Unraid server details
 
 ## Configuration
 
@@ -215,8 +210,11 @@ service: unraid_management_agent.parity_check_start
 
 ## Example Automations
 
-### Alert on High CPU Usage
+For comprehensive automation examples, dashboard configurations, and scripts, see [EXAMPLES.md](../../EXAMPLES.md).
 
+### Quick Examples
+
+**High CPU Alert**
 ```yaml
 automation:
   - alias: "Unraid High CPU Alert"
@@ -230,11 +228,10 @@ automation:
       - service: notify.mobile_app
         data:
           title: "Unraid Alert"
-          message: "CPU usage is above 80% for 5 minutes"
+          message: "CPU usage is above 80%"
 ```
 
-### Start Container on Array Start
-
+**Start Container on Array Start**
 ```yaml
 automation:
   - alias: "Start Plex when Array Starts"
@@ -248,21 +245,13 @@ automation:
           entity_id: switch.unraid_container_plex
 ```
 
-### UPS Battery Low Alert
-
-```yaml
-automation:
-  - alias: "UPS Battery Low"
-    trigger:
-      - platform: numeric_state
-        entity_id: sensor.unraid_ups_battery
-        below: 20
-    action:
-      - service: notify.mobile_app
-        data:
-          title: "UPS Alert"
-          message: "UPS battery is below 20%"
-```
+See [EXAMPLES.md](../../EXAMPLES.md) for more examples including:
+- System monitoring automations
+- Array management automations
+- Container control automations
+- UPS monitoring and graceful shutdown
+- Dashboard card configurations
+- Notification examples
 
 ## Troubleshooting
 
